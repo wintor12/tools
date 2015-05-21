@@ -1,11 +1,16 @@
 from os import listdir
-from os.path import isfile, join
+from os.path import isfile, join, isdir
+import os.path
 import enchant
 import os
+import shutil
 from nltk.stem.lancaster import LancasterStemmer
 
 def listFiles(path):
 	return [ f for f in listdir(path) if isfile(join(path,f)) and not f.startswith('.')]
+	
+def listFolders(path):
+	return [ f for f in listdir(path) if isdir(join(path,f)) and not f.startswith('.')]
 	
 def removeDocs(doc_names, path):
 	for doc in doc_names:
@@ -41,6 +46,22 @@ def keepEnglishWords(path, output):
 		p = open(join(output, name), 'w')
 		p.write(res)
 		p.close()
+		
+def mergeMultiFoldersToOne(folders_path, dest_folder_path, addFolderName):
+	folders = listFolders(folders_path)
+	for folder in folders:
+		folder_path = join(folders_path, folder)
+		files = listFiles(folder_path)
+		if addFolderName is True:
+			for file in files:
+				file_path = join(folder_path, file)
+				file_path2 = join(folder_path, folder + '_' + file)
+				os.rename(file_path, file_path2)
+				shutil.copy(file_path2, dest_folder_path)
+		else:
+			for file in files:
+				file_path = join(folder_path, file)
+				shutil.copy(file_path, dest_folder_path)
 
 def removeLen2Words(path, output):
 	filenames = listFiles(path)
@@ -62,5 +83,14 @@ def removeLen2Words(path, output):
 		p.write(res)
 		p.close()
 
-def removeFilesWithSmallNoDocs(path, num):
-	print len(listFiles(path))
+def removeFoldersWithSmallNoDocs(path, num):
+	folders = listFolders(path)
+	for folder in folders:
+		if len(listFiles(join(path, folder))) < num:
+			shutil.rmtree(join(path, folder))
+			
+def removeFilesWithSmallSize(folder_path, size):
+	files = listFiles(folder_path)
+	for file in files:
+		if os.path.getsize(join(folder_path, file)) < size:
+			os.remove(join(folder_path, file))
