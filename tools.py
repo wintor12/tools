@@ -5,6 +5,8 @@ import enchant
 import os
 import shutil
 from nltk.stem.lancaster import LancasterStemmer
+import numpy as np
+import random
 
 def listFiles(path):
 	return [ f for f in listdir(path) if isfile(join(path,f)) and not f.startswith('.')]
@@ -94,3 +96,25 @@ def removeFilesWithSmallSize(folder_path, size):
 	for file in files:
 		if os.path.getsize(join(folder_path, file)) < size:
 			os.remove(join(folder_path, file))
+			
+###compute average value of LDA GTRF EGTRF eval file
+def averageRes(file_path):
+	lines = [line.rstrip('\n') for line in open(file_path)]
+	res = [round(float(line[line.index(' : ')+3:]),3) for line in lines]
+	num = len(res)/3
+	avg = []
+	for i in xrange(num):
+		temp = [res[i*3], res[i*3+1],res[i*3+2]]
+		print np.mean(temp)
+		
+#### Randomly select files from a folder
+def randomFileNames(folder_path, num):
+	files = listFiles(folder_path)
+	rand = random.sample(range(1, len(files)), num)
+	return [files[n - 1] for n in rand]
+	
+def copyFilesFromList(files, folder_path, dest_folder_path):
+	if not os.path.exists(dest_folder_path):
+		os.makedirs(dest_folder_path)
+	for doc in files:
+		shutil.copy(os.path.join(folder_path, doc), dest_folder_path)
